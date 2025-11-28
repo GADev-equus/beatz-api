@@ -3,7 +3,7 @@
 Baseline Express server (JavaScript only) running on port 8000 with security middleware, logging, environment handling, Mongo wiring, and versioned routes (`/api/v1`). Reflects the current `api/` codebase.
 
 ## Structure
-- `package.json` – scripts (`dev`, `start`), ESM (`type: "module"`), core deps (`express`, `helmet`, `cors`, `morgan`, `dotenv`, `mongoose`, `@clerk/express`), dev deps (`nodemon`, `cross-env`).
+- `package.json` – scripts (`dev`, `start`), ESM (`type: "module"`), core deps (`express`, `helmet`, `cors`, `morgan`, `dotenv`, `mongoose`, `@clerk/express`), dev deps (`nodemon`, `cross-env`, `react` to satisfy Clerk peer warning).
 - `.env.example` – copy to `.env` and fill values.
 - `src/config/env.js` – loads/validates env vars (port, prefix, version, CORS, Clerk, Mongo, Stripe).
 - `src/config/mongo.js` – Mongo connection helpers (connect/disconnect, strictQuery).
