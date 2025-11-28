@@ -7,6 +7,7 @@ import healthRouter from './routes/health.js';
 import apiV1Router from './routes/v1/index.js';
 import notFound from './middleware/notFound.js';
 import errorHandler from './middleware/errorHandler.js';
+import { withClerkMiddleware } from './middleware/auth.js';
 
 const app = express();
 
@@ -28,6 +29,9 @@ app.use(
     skip: () => config.env === 'test',
   })
 );
+
+// Attach Clerk auth context if configured
+app.use(withClerkMiddleware);
 
 app.use('/health', healthRouter);
 app.use(`${config.apiPrefix}/${config.apiVersion}`, apiV1Router);

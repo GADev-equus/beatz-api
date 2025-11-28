@@ -24,6 +24,7 @@
   },
   "homepage": "https://github.com/GADev-equus/beatz-api#readme",
   "dependencies": {
+    "@clerk/express": "^1.7.53",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
