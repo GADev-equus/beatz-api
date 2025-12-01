@@ -13,6 +13,7 @@ const app = express();
 
 app.disable('x-powered-by');
 app.set('trust proxy', 1);
+app.disable('etag');
 
 const corsOptions = {
   origin: config.corsOrigins.length ? config.corsOrigins : true,
@@ -34,7 +35,7 @@ app.use(
 app.use(withClerkMiddleware);
 
 app.use('/health', healthRouter);
-app.use(`${config.apiPrefix}/${config.apiVersion}`, apiV1Router);
+app.use(config.apiBasePath, apiV1Router);
 
 app.use(notFound);
 app.use(errorHandler);

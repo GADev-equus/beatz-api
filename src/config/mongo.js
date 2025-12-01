@@ -18,6 +18,7 @@ export async function connectMongo() {
     await mongoose.connect(config.mongo.uri, {
       serverSelectionTimeoutMS: 5000,
       autoIndex: false,
+      dbName: config.mongo.dbName || undefined,
     });
     isConnected = true;
     logger.info('MongoDB connected.');

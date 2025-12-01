@@ -1,20 +1,20 @@
-# API DB Schema (Draft)
+# API DB Schema (Current)
 
-Domain schema for the Beatz backend (JavaScript, ESM) using Express + Mongoose with Clerk identity. Models are normalized to support tenants, parents/students, subjects, and billing metadata.
+Domain schema for the Beatz backend (JavaScript, ESM) using Express + Mongoose with Clerk identity. Models are normalized to support tenants, parents/students, enrolments, and billing metadata.
 
 ## Context
-- Stack: Express (ESM), Mongoose, versioned routes (`/api/v1`), future Clerk auth (env placeholders exist).
-- Identity: Clerk provides authentication; Mongo stores domain data and roles.
+- Stack: Express (ESM), Mongoose, versioned routes (`/api/v1`), Clerk auth middleware.
+- Identity: Clerk provides authentication; Mongo stores domain data, roles, and enrolments.
 - Tenancy: Users/parents/students reference `tenantId` to support school/family scopes.
 
 ## Collections & Relationships
-- **User**: one per Clerk user; holds role and tenant pointer.
-- **Parent**: links to `User`; owns many `Student` records; optional Stripe customer.
-- **Student**: optional link to `User` (if student logs in); many-to-many subjects.
-- **Subject**: catalog of subjects/boards.
+- **User**: one per Clerk user; holds role, display name, profile, and tenant pointer.
+- **Parent**: links to `User`; owns many `Student` records; optional Stripe customer id.
+- **Student**: optional link to `User` (if student logs in); includes enrolments (subject, level, exam body, books, exam dates) and country/yearGroup for curriculum context.
+- **Subject**: catalog of subjects/boards (kept for reference; enrolments store subject strings).
 - **Tenant**: schools/families; may store Stripe customer/subscription IDs.
 
-## Recommended Schemas (ESM)
+## Schemas (ESM)
 ```js
 // src/models/User.js
 import { Schema, model } from 'mongoose';
@@ -23,10 +23,19 @@ const UserSchema = new Schema(
   {
     clerkUserId: { type: String, required: true, unique: true, index: true },
     email: { type: String, required: true },
+    displayName: { type: String, default: '' },
+    profile: {
+      firstName: { type: String, default: '' },
+      lastName: { type: String, default: '' },
+      avatarUrl: { type: String, default: '' },
+      phone: { type: String, default: '' },
+    },
     role: { type: String, enum: ['student', 'parent', 'teacher', 'admin'], required: true },
     tenantId: { type: Schema.Types.ObjectId, ref: 'Tenant', default: null, index: true },
   },
-  { timestamps: { createdAt: 'createdAt', updatedAt: 'updatedAt' } }
+  {
+    timestamps: { createdAt: 'createdAt', updatedAt: 'updatedAt' },
+  }
 );
 
 export default model('User', UserSchema);
@@ -39,7 +48,7 @@ import { Schema, model } from 'mongoose';
 const ParentSchema = new Schema(
   {
     userId: { type: Schema.Types.ObjectId, ref: 'User', required: true, index: true },
-    childrenIds: [{ type: Schema.Types.ObjectId, ref: 'Student' }],
+    childrenIds: { type: [{ type: Schema.Types.ObjectId, ref: 'Student' }], default: [] },
     tenantId: { type: Schema.Types.ObjectId, ref: 'Tenant', default: null, index: true },
     stripeCustomerId: { type: String, default: null },
   },
@@ -53,12 +62,32 @@ export default model('Parent', ParentSchema);
 // src/models/Student.js
 import { Schema, model } from 'mongoose';
 
+const BookSchema = new Schema(
+  {
+    title: { type: String, required: true },
+    author: { type: String, default: '' },
+  },
+  { _id: false }
+);
+
+const EnrolmentSchema = new Schema(
+  {
+    subject: { type: String, required: true },
+    level: { type: String, default: null },
+    examBody: { type: String, default: null },
+    books: { type: [BookSchema], default: [] },
+    examDates: { type: [String], default: [] },
+  },
+  { _id: false }
+);
+
 const StudentSchema = new Schema(
   {
     userId: { type: Schema.Types.ObjectId, ref: 'User', default: null, index: true }, // if student has login
     displayName: { type: String, required: true },
     yearGroup: { type: String, default: null },
-    subjectIds: [{ type: Schema.Types.ObjectId, ref: 'Subject' }],
+    country: { type: String, default: null },
+    enrolments: { type: [EnrolmentSchema], default: [] },
     tenantId: { type: Schema.Types.ObjectId, ref: 'Tenant', default: null, index: true },
   },
   { timestamps: true }
@@ -100,49 +129,23 @@ const TenantSchema = new Schema(
 export default model('Tenant', TenantSchema);
 ```
 
+## Enrolment options endpoint
+- `GET /api/v1/meta/enrolment-options` exposes static dropdown data to the frontend (`countries`, `levelsByCountry`, `examBodiesByCountry`).
+
 ## Webhook Sync (Clerk → Mongo)
-- Configure a Clerk webhook to call `/webhook/clerk` with `CLERK_WEBHOOK_SECRET`.
+- Configure a Clerk webhook to call `/webhook/clerk` (when added) with `CLERK_WEBHOOK_SECRET`.
 - On `user.created`, upsert a `User` with `clerkUserId`, primary email, default role/tenant as needed.
 - Handle `user.updated` (email changes) and `user.deleted` (soft-delete or cascade) similarly.
-
-## Protected Lookup Example
-```js
-// src/routes/v1/me.js (example)
-import { Router } from 'express';
-import { getAuth } from '@clerk/express';
-import User from '../../models/User.js';
-import Parent from '../../models/Parent.js';
-
-const router = Router();
-
-router.get('/me', async (req, res) => {
-  const { userId: clerkUserId } = getAuth(req);
-  if (!clerkUserId) return res.status(401).json({ error: 'Not authenticated' });
-
-  const user = await User.findOne({ clerkUserId });
-  if (!user) return res.status(404).json({ error: 'User record not found' });
-
-  const parent = await Parent.findOne({ userId: user._id })
-    .populate({ path: 'childrenIds', model: 'Student', populate: { path: 'subjectIds', model: 'Subject' } });
-
-  res.json({ user, parent });
-});
-
-export default router;
-```
 
 ## Indexing & Integrity
 - Index `clerkUserId`, `tenantId`, and common lookup fields (`userId` on Parent/Student).
 - Prefer `timestamps: true` for auditing.
 - Consider soft deletes (`active` flag) for GDPR/retention requirements.
+- Use zod validation on requests (see `src/validation/`) to keep payloads aligned with these schemas.
 
 ## Folder Layout (aligned with current project)
-- `src/models/` – schemas above.
-- `src/routes/v1/` – versioned route modules; mount in `src/routes/v1/index.js`.
-- `src/clerk/` – webhook/auth helpers when added.
-- `src/services/` – business logic (billing, enrollment, permissions).
-
-## Next Steps
-- Add actual route files under `src/routes/v1/` to expose CRUD for these models.
-- Implement Clerk middleware on protected routes.
-- Add validation (e.g., zod/joi) and authorization checks per role/tenant.
+- `src/models/` — schemas above.
+- `src/controllers/` — controller functions for health, public ping, me lookups, registrations, students, meta options.
+- `src/services/` — domain/service layer (account lookups, registration orchestration, student CRUD/invite).
+- `src/validation/` — zod schemas for request validation.
+- `src/routes/v1/` — versioned route modules mounted under `src/routes/v1/index.js`.
