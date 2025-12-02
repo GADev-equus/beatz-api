@@ -2,7 +2,10 @@ import User from '../models/User.js';
 import Parent from '../models/Parent.js';
 import Student from '../models/Student.js';
 import Tenant from '../models/Tenant.js';
-import { normalizeString as normalize, normalizeEnrolments } from '../utils/normalizers.js';
+import {
+  normalizeString as normalize,
+  normalizeEnrolments,
+} from '../utils/normalizers.js';
 
 const resolveTenant = async (tenant) => {
   if (!tenant) return { tenantDoc: null, tenantId: null };
@@ -31,7 +34,11 @@ const resolveTenant = async (tenant) => {
   return { tenantDoc: null, tenantId: null };
 };
 
-export const registerProfileService = async ({ clerkUserId, input }) => {
+export const registerProfileService = async ({
+  clerkUserId,
+  input,
+  invitationMetadata = {},
+}) => {
   const {
     email,
     role,
@@ -45,6 +52,101 @@ export const registerProfileService = async ({ clerkUserId, input }) => {
   const normalizedEmail = normalize(email).toLowerCase();
   const normalizedDisplayName = normalize(displayName);
 
+  // Validate student registration requires invitation
+  if (role === 'student') {
+    const studentId = invitationMetadata.studentId;
+    if (!studentId) {
+      const error = new Error('Students must be invited by a guardian');
+      error.status = 403;
+      throw error;
+    }
+
+    // Find the existing student record created by guardian
+    const existingStudent = await Student.findById(studentId);
+    if (!existingStudent) {
+      const error = new Error('Invitation is invalid or expired');
+      error.status = 400;
+      throw error;
+    }
+
+    if (existingStudent.userId) {
+      const error = new Error('This invitation has already been accepted');
+      error.status = 409;
+      throw error;
+    }
+
+    // Use tenant from invitation metadata
+    const invitedTenantId =
+      invitationMetadata.tenantId || existingStudent.tenantId;
+
+    const userUpdate = {
+      email: normalizedEmail,
+      role,
+      tenantId: invitedTenantId || undefined,
+    };
+
+    if (normalizedDisplayName) {
+      userUpdate.displayName = normalizedDisplayName;
+    }
+
+    const profileFirstName = normalize(profile.firstName);
+    const profileLastName = normalize(profile.lastName);
+    const profileAvatarUrl = normalize(profile.avatarUrl);
+    const profilePhone = normalize(profile.phone);
+
+    if (
+      profileFirstName ||
+      profileLastName ||
+      profileAvatarUrl ||
+      profilePhone
+    ) {
+      userUpdate.profile = {
+        firstName: profileFirstName,
+        lastName: profileLastName,
+        avatarUrl: profileAvatarUrl,
+        phone: profilePhone,
+      };
+    }
+
+    const user = await User.findOneAndUpdate({ clerkUserId }, userUpdate, {
+      new: true,
+      upsert: true,
+      setDefaultsOnInsert: true,
+    });
+
+    // Link user to existing student record
+    existingStudent.userId = user._id;
+    existingStudent.invitationStatus = 'accepted';
+    await existingStudent.save();
+
+    // Create notification for guardian
+    const guardianUserId = invitationMetadata.guardianUserId;
+    if (guardianUserId) {
+      try {
+        const Notification = (await import('../models/Notification.js'))
+          .default;
+        await Notification.create({
+          userId: guardianUserId,
+          type: 'invitation_accepted',
+          message: `${existingStudent.displayName} accepted your invitation and joined BEATZ`,
+          relatedStudentId: existingStudent._id,
+          read: false,
+        });
+      } catch (err) {
+        // Log but don't fail registration if notification fails
+        console.error('Failed to create guardian notification:', err);
+      }
+    }
+
+    return {
+      user,
+      tenant: invitedTenantId ? { _id: invitedTenantId } : null,
+      parent: null,
+      students: [existingStudent],
+    };
+  }
+
+  // Guardian registration flow (parent/teacher/admin)
   const { tenantDoc, tenantId } = await resolveTenant(tenant);
 
   const userUpdate = {
@@ -71,11 +173,11 @@ export const registerProfileService = async ({ clerkUserId, input }) => {
     };
   }
 
-  const user = await User.findOneAndUpdate(
-    { clerkUserId },
-    userUpdate,
-    { new: true, upsert: true, setDefaultsOnInsert: true }
-  );
+  const user = await User.findOneAndUpdate({ clerkUserId }, userUpdate, {
+    new: true,
+    upsert: true,
+    setDefaultsOnInsert: true,
+  });
 
   const createdStudents = [];
   let parentDoc = null;
@@ -86,7 +188,7 @@ export const registerProfileService = async ({ clerkUserId, input }) => {
       {
         tenantId: tenantId || undefined,
       },
-      { new: true, upsert: true, setDefaultsOnInsert: true }
+      { new: true, upsert: true, setDefaultsOnInsert: true },
     );
 
     if (!Array.isArray(parentDoc.childrenIds)) {
@@ -113,29 +215,6 @@ export const registerProfileService = async ({ clerkUserId, input }) => {
       path: 'childrenIds',
       model: 'Student',
     });
-  }
-
-  if (role === 'student') {
-    const name = normalize(studentProfile.displayName) || normalizedDisplayName;
-    const yearGroup = normalize(studentProfile.yearGroup);
-    const country = normalize(studentProfile.country);
-    const enrolments = normalizeEnrolments(studentProfile.enrolments);
-
-    if (name) {
-      const student = await Student.findOneAndUpdate(
-        { userId: user._id },
-        {
-          displayName: name,
-          yearGroup: yearGroup || null,
-          country: country || null,
-          enrolments,
-          tenantId: tenantId || undefined,
-        },
-        { new: true, upsert: true, setDefaultsOnInsert: true }
-      );
-
-      createdStudents.push(student);
-    }
   }
 
   return {

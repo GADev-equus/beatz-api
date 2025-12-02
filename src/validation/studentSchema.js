@@ -34,3 +34,16 @@ export const updateStudentSchema = z
 export const inviteStudentSchema = z.object({
   email: z.string().trim().email(),
 });
+
+export const rejectEnrolmentSchema = z.object({
+  rejectionReason: z.string().trim().min(1, 'Rejection reason is required'),
+});
+
+export const updateMyStudentProfileSchema = z
+  .object({
+    yearGroup: z.string().trim().optional(),
+    enrolments: z.array(enrolmentSchema).optional(),
+  })
+  .refine((data) => Object.keys(data).length > 0, {
+    message: 'At least one field must be provided',
+  });

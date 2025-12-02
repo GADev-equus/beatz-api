@@ -11,15 +11,26 @@ export const registerProfile = async (req, res, next) => {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
+    // Extract invitation metadata if present
+    const invitationMetadata = auth?.invitation?.publicMetadata || {};
+
     const parsed = registrationSchema.parse(req.body || {});
-    const result = await registerProfileService({ clerkUserId, input: parsed });
+    const result = await registerProfileService({
+      clerkUserId,
+      input: parsed,
+      invitationMetadata,
+    });
     res.status(201).json(result);
   } catch (err) {
     if (err instanceof ZodError) {
-      return res.status(400).json({ error: 'Invalid payload', details: err.errors });
+      return res
+        .status(400)
+        .json({ error: 'Invalid payload', details: err.errors });
     }
     if (err?.status) {
-      return res.status(err.status).json({ error: err.message || 'Registration failed' });
+      return res
+        .status(err.status)
+        .json({ error: err.message || 'Registration failed' });
     }
     next(err);
   }
