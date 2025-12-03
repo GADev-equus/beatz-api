@@ -1,4 +1,4 @@
-# BEATZ User Experience Workflows
+﻿# BEATZ User Experience Workflows
 
 This document outlines the complete user journeys for the BEATZ platform, detailing how guardians and students interact with the system from registration through subject approval and ongoing learning.
 
@@ -15,6 +15,14 @@ This ensures guardians maintain financial control while empowering students to p
 
 ---
 
+## Dashboards & Roles
+
+- **Guardians (parent/guardian/teacher/tutor)**: Add/invite students, manage enrolments, approve/reject subjects. Must complete registration before managing students; otherwise they see a registration prompt.
+- **Students**: See their own subjects and status, manage profile/subjects; treated as registration-complete (no registration prompt).
+- **Admins**: Admin dashboard with oversight tools; no guardian/student gating.
+
+---
+
 ## Guardian User Journey
 
 ### 1. Initial Registration & Setup
@@ -24,18 +32,17 @@ This ensures guardians maintain financial control while empowering students to p
 **Flow**:
 
 ```
-Sign Up (Clerk) → Complete Registration Form → Dashboard
+Sign Up (Clerk) â†’ Complete Registration Form â†’ Dashboard
 ```
 
 **Steps**:
 
 1. Guardian creates account via Clerk authentication (email/password or social login)
-2. Redirected to `/register` to complete profile:
-   - Select role: Parent/Teacher/Admin
-   - Enter display name
-   - Create/join tenant (family name or school name)
-   - Optionally add first student's basic info (name, year group, country)
-3. Submit registration → redirected to Dashboard
+2. Redirected to /register to complete profile:
+   - Select role: Parent/Guardian/Teacher/Tutor
+   - Enter display name (email is pre-filled and locked)
+   - Tenant connection can be added later from the dashboard
+3. Submit registration â†’ redirected to Dashboard
 
 **Technical**: `POST /api/v1/registrations` creates User, Tenant, Parent, and optional Student records
 
@@ -48,7 +55,7 @@ Sign Up (Clerk) → Complete Registration Form → Dashboard
 **Flow**:
 
 ```
-Dashboard → Add Student Form → Save → Student appears in list
+Dashboard â†’ Add Student Form â†’ Save â†’ Student appears in list
 ```
 
 **Steps**:
@@ -77,7 +84,7 @@ Dashboard → Add Student Form → Save → Student appears in list
 **Flow**:
 
 ```
-Click Invite → Enter Email Dialog → Send Invitation → Status changes to "Pending"
+Click Invite â†’ Enter Email Dialog â†’ Send Invitation â†’ Status changes to "Pending"
 ```
 
 **Steps**:
@@ -117,7 +124,7 @@ Click Invite → Enter Email Dialog → Send Invitation → Status changes to "P
 **Flow**:
 
 ```
-Dashboard → Subject Approval Panel → Review subjects → Approve or Reject
+Dashboard â†’ Subject Approval Panel â†’ Review subjects â†’ Approve or Reject
 ```
 
 **Steps**:
@@ -131,7 +138,7 @@ Dashboard → Subject Approval Panel → Review subjects → Approve or Reject
    - Level (e.g., "GCSE")
    - Exam body (e.g., "AQA")
    - Study resources/books
-   - **Placeholder price**: "£29.99/month"
+   - **Placeholder price**: "Â£29.99/month"
 6. Monthly cost calculator shows per-student totals and grand total
 
 **Technical**: Subjects with `approvalStatus='pending_approval'` are fetched and displayed
@@ -145,16 +152,16 @@ Dashboard → Subject Approval Panel → Review subjects → Approve or Reject
 **Flow**:
 
 ```
-Click Approve → Confirmation → Subject activated → Student notified
+Click Approve â†’ Confirmation â†’ Subject activated â†’ Student notified
 ```
 
 **Steps**:
 
-1. Confirmation dialog: "Approve Biology for [Student Name]? This will add £29.99/month to your subscription."
+1. Confirmation dialog: "Approve Biology for [Student Name]? This will add Â£29.99/month to your subscription."
 2. Guardian confirms
 3. Subject status changes to "Approved" (green badge)
 4. Billing status updates to "Placeholder Active"
-5. Monthly price recorded: £29.99
+5. Monthly price recorded: Â£29.99
 6. Student receives notification: "Your guardian approved Biology - you can now access it!"
 7. Subject appears in student's active subjects list
 8. Guardian's billing summary updates with new monthly total
@@ -174,7 +181,7 @@ Click Approve → Confirmation → Subject activated → Student notified
 **Flow**:
 
 ```
-Click Reject → Reason Dialog → Submit → Subject rejected → Student notified
+Click Reject â†’ Reason Dialog â†’ Submit â†’ Subject rejected â†’ Student notified
 ```
 
 **Steps**:
@@ -204,40 +211,40 @@ Click Reject → Reason Dialog → Submit → Subject rejected → Student notif
 **Dashboard View**:
 
 ```
-┌─────────────────────────────────────┐
-│ Dashboard Summary                   │
-│ Total Students: 3                   │
-│ Pending Approvals: 5 🔔            │
-└─────────────────────────────────────┘
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚ Dashboard Summary                   â”‚
+â”‚ Total Students: 3                   â”‚
+â”‚ Pending Approvals: 5 ðŸ””            â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 
-┌─────────────────────────────────────┐
-│ Student: Emma (Year 10, UK)         │
-│ Status: Active ●                    │
-│ Subjects: Biology (GCSE), Maths     │
-│ [Invite] [View Details]             │
-└─────────────────────────────────────┘
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚ Student: Emma (Year 10, UK)         â”‚
+â”‚ Status: Active â—                    â”‚
+â”‚ Subjects: Biology (GCSE), Maths     â”‚
+â”‚ [Invite] [View Details]             â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 
-┌─────────────────────────────────────┐
-│ Student: Noah (Year 8, UK)          │
-│ Status: Pending ●                   │
-│ Invited: 2 days ago                 │
-│ [Resend Invitation]                 │
-└─────────────────────────────────────┘
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚ Student: Noah (Year 8, UK)          â”‚
+â”‚ Status: Pending â—                   â”‚
+â”‚ Invited: 2 days ago                 â”‚
+â”‚ [Resend Invitation]                 â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 
-┌─────────────────────────────────────┐
-│ Subject Approval Panel              │
-│                                     │
-│ Emma's Pending Subjects (2)         │
-│ ├─ Chemistry GCSE AQA £29.99/mo    │
-│ │  [Approve] [Reject]               │
-│ └─ Physics GCSE OCR £29.99/mo      │
-│    [Approve] [Reject]               │
-│                                     │
-│ Noah's Pending Subjects (3)         │
-│ └─ (awaiting student acceptance)    │
-│                                     │
-│ Monthly Total: £59.98               │
-└─────────────────────────────────────┘
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚ Subject Approval Panel              â”‚
+â”‚                                     â”‚
+â”‚ Emma's Pending Subjects (2)         â”‚
+â”‚ â”œâ”€ Chemistry GCSE AQA Â£29.99/mo    â”‚
+â”‚ â”‚  [Approve] [Reject]               â”‚
+â”‚ â””â”€ Physics GCSE OCR Â£29.99/mo      â”‚
+â”‚    [Approve] [Reject]               â”‚
+â”‚                                     â”‚
+â”‚ Noah's Pending Subjects (3)         â”‚
+â”‚ â””â”€ (awaiting student acceptance)    â”‚
+â”‚                                     â”‚
+â”‚ Monthly Total: Â£59.98               â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 ```
 
 ---
@@ -249,7 +256,7 @@ Click Reject → Reason Dialog → Submit → Subject rejected → Student notif
 **Flow**:
 
 ```
-Student edits subject → Status resets → Guardian notified → Re-approval needed
+Student edits subject â†’ Status resets â†’ Guardian notified â†’ Re-approval needed
 ```
 
 **Steps**:
@@ -286,7 +293,7 @@ Student edits subject → Status resets → Guardian notified → Re-approval ne
 
 **Actions**:
 
-- Click notification → marks as read → navigates to relevant section
+- Click notification â†’ marks as read â†’ navigates to relevant section
 - Notifications auto-delete after 30 days
 
 ---
@@ -316,7 +323,7 @@ This invitation expires in 7 days.
 **Flow**:
 
 ```
-Email → Click Link → Clerk Sign-Up → Profile Setup Wizard → Dashboard
+Email â†’ Click Link â†’ Clerk Sign-Up â†’ Profile Setup Wizard â†’ Dashboard
 ```
 
 ---
@@ -328,7 +335,7 @@ Email → Click Link → Clerk Sign-Up → Profile Setup Wizard → Dashboard
 **Flow**:
 
 ```
-Invitation Link → Clerk Sign-Up → Verify Email → Redirected to Profile Setup
+Invitation Link â†’ Clerk Sign-Up â†’ Verify Email â†’ Redirected to Profile Setup
 ```
 
 **Steps**:
@@ -350,7 +357,7 @@ Invitation Link → Clerk Sign-Up → Verify Email → Redirected to Profile Set
 **Error State**: If student tries to self-register without invitation:
 
 ```
-❌ Error: Students must be invited by a guardian
+âŒ Error: Students must be invited by a guardian
 
 Please ask your parent, teacher, or tutor to send you an
 invitation to join BEATZ.
@@ -365,84 +372,84 @@ invitation to join BEATZ.
 **Step 1: Welcome**
 
 ```
-┌─────────────────────────────────────┐
-│ Welcome to BEATZ, Emma!             │
-│                                     │
-│ Your guardian has set up your       │
-│ profile with the following info:    │
-│                                     │
-│ Name: Emma Thompson (read-only)     │
-│ Year Group: Year 10 (read-only)     │
-│ Country: United Kingdom (read-only) │
-│                                     │
-│ [Next: Select Your Subjects]        │
-└─────────────────────────────────────┘
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚ Welcome to BEATZ, Emma!             â”‚
+â”‚                                     â”‚
+â”‚ Your guardian has set up your       â”‚
+â”‚ profile with the following info:    â”‚
+â”‚                                     â”‚
+â”‚ Name: Emma Thompson (read-only)     â”‚
+â”‚ Year Group: Year 10 (read-only)     â”‚
+â”‚ Country: United Kingdom (read-only) â”‚
+â”‚                                     â”‚
+â”‚ [Next: Select Your Subjects]        â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 ```
 
 **Step 2: Subject Selection**
 
 ```
-┌─────────────────────────────────────┐
-│ Select Your Subjects                │
-│                                     │
-│ Search: [biology______] 🔍          │
-│                                     │
-│ Available Subjects:                 │
-│ ☑ Biology                           │
-│ ☑ Chemistry                         │
-│ ☐ Physics                           │
-│ ☑ Mathematics                       │
-│ ☐ English Literature                │
-│ ... (searchable/filterable list)    │
-│                                     │
-│ Selected: 3 subjects                │
-│                                     │
-│ [Back] [Next: Configure Details]    │
-└─────────────────────────────────────┘
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚ Select Your Subjects                â”‚
+â”‚                                     â”‚
+â”‚ Search: [biology______] ðŸ”          â”‚
+â”‚                                     â”‚
+â”‚ Available Subjects:                 â”‚
+â”‚ â˜‘ Biology                           â”‚
+â”‚ â˜‘ Chemistry                         â”‚
+â”‚ â˜ Physics                           â”‚
+â”‚ â˜‘ Mathematics                       â”‚
+â”‚ â˜ English Literature                â”‚
+â”‚ ... (searchable/filterable list)    â”‚
+â”‚                                     â”‚
+â”‚ Selected: 3 subjects                â”‚
+â”‚                                     â”‚
+â”‚ [Back] [Next: Configure Details]    â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 ```
 
 **Step 3: Configure Each Subject**
 
 ```
-┌─────────────────────────────────────┐
-│ Configure Biology (1 of 3)          │
-│                                     │
-│ Level: [GCSE ▼]                     │
-│   Options: GCSE, A-Level, IB        │
-│                                     │
-│ Exam Body: [AQA ▼]                  │
-│   Options: AQA, Edexcel, OCR, WJEC  │
-│                                     │
-│ Study Resources (optional):         │
-│ + [AQA GCSE Biology Student Book]   │
-│ + [CGP Revision Guide]              │
-│   [+ Add another book]              │
-│                                     │
-│ [Back] [Next Subject →]             │
-└─────────────────────────────────────┘
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚ Configure Biology (1 of 3)          â”‚
+â”‚                                     â”‚
+â”‚ Level: [GCSE â–¼]                     â”‚
+â”‚   Options: GCSE, A-Level, IB        â”‚
+â”‚                                     â”‚
+â”‚ Exam Body: [AQA â–¼]                  â”‚
+â”‚   Options: AQA, Edexcel, OCR, WJEC  â”‚
+â”‚                                     â”‚
+â”‚ Study Resources (optional):         â”‚
+â”‚ + [AQA GCSE Biology Student Book]   â”‚
+â”‚ + [CGP Revision Guide]              â”‚
+â”‚   [+ Add another book]              â”‚
+â”‚                                     â”‚
+â”‚ [Back] [Next Subject â†’]             â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 ```
 
 **Step 4: Review Summary**
 
 ```
-┌─────────────────────────────────────┐
-│ Review Your Subjects                │
-│                                     │
-│ 1. Biology GCSE (AQA)               │
-│    Books: AQA Student Book, CGP     │
-│                                     │
-│ 2. Chemistry GCSE (Edexcel)         │
-│    Books: None                      │
-│                                     │
-│ 3. Mathematics A-Level (OCR)        │
-│    Books: OCR Textbook              │
-│                                     │
-│ ⚠️ Your guardian will review and    │
-│    approve these subjects before    │
-│    you can access learning content. │
-│                                     │
-│ [Back] [Submit for Approval]        │
-└─────────────────────────────────────┘
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚ Review Your Subjects                â”‚
+â”‚                                     â”‚
+â”‚ 1. Biology GCSE (AQA)               â”‚
+â”‚    Books: AQA Student Book, CGP     â”‚
+â”‚                                     â”‚
+â”‚ 2. Chemistry GCSE (Edexcel)         â”‚
+â”‚    Books: None                      â”‚
+â”‚                                     â”‚
+â”‚ 3. Mathematics A-Level (OCR)        â”‚
+â”‚    Books: OCR Textbook              â”‚
+â”‚                                     â”‚
+â”‚ âš ï¸ Your guardian will review and    â”‚
+â”‚    approve these subjects before    â”‚
+â”‚    you can access learning content. â”‚
+â”‚                                     â”‚
+â”‚ [Back] [Submit for Approval]        â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 ```
 
 **Submit Action**:
@@ -464,39 +471,39 @@ invitation to join BEATZ.
 **Dashboard View**:
 
 ```
-┌─────────────────────────────────────┐
-│ Hi, Emma                            │
-│ Signed in as: emma@example.com      │
-│ Last signed in: 2 hours ago         │
-└─────────────────────────────────────┘
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚ Hi, Emma                            â”‚
+â”‚ Signed in as: emma@example.com      â”‚
+â”‚ Last signed in: 2 hours ago         â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 
-┌─────────────────────────────────────┐
-│ My Subjects                         │
-│                                     │
-│ ℹ️ Subjects become active once your │
-│   guardian approves them            │
-│                                     │
-│ ┌─────────────────────────────────┐ │
-│ │ Biology GCSE (AQA)              │ │
-│ │ Status: Pending Approval ●      │ │
-│ │ Submitted: 1 hour ago           │ │
-│ │ [View Details]                  │ │
-│ └─────────────────────────────────┘ │
-│                                     │
-│ ┌─────────────────────────────────┐ │
-│ │ Chemistry GCSE (Edexcel)        │ │
-│ │ Status: Pending Approval ●      │ │
-│ │ Submitted: 1 hour ago           │ │
-│ │ [View Details]                  │ │
-│ └─────────────────────────────────┘ │
-│                                     │
-│ ┌─────────────────────────────────┐ │
-│ │ Mathematics A-Level (OCR)       │ │
-│ │ Status: Pending Approval ●      │ │
-│ │ Submitted: 1 hour ago           │ │
-│ │ [View Details]                  │ │
-│ └─────────────────────────────────┘ │
-└─────────────────────────────────────┘
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚ My Subjects                         â”‚
+â”‚                                     â”‚
+â”‚ â„¹ï¸ Subjects become active once your â”‚
+â”‚   guardian approves them            â”‚
+â”‚                                     â”‚
+â”‚ â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â” â”‚
+â”‚ â”‚ Biology GCSE (AQA)              â”‚ â”‚
+â”‚ â”‚ Status: Pending Approval â—      â”‚ â”‚
+â”‚ â”‚ Submitted: 1 hour ago           â”‚ â”‚
+â”‚ â”‚ [View Details]                  â”‚ â”‚
+â”‚ â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜ â”‚
+â”‚                                     â”‚
+â”‚ â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â” â”‚
+â”‚ â”‚ Chemistry GCSE (Edexcel)        â”‚ â”‚
+â”‚ â”‚ Status: Pending Approval â—      â”‚ â”‚
+â”‚ â”‚ Submitted: 1 hour ago           â”‚ â”‚
+â”‚ â”‚ [View Details]                  â”‚ â”‚
+â”‚ â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜ â”‚
+â”‚                                     â”‚
+â”‚ â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â” â”‚
+â”‚ â”‚ Mathematics A-Level (OCR)       â”‚ â”‚
+â”‚ â”‚ Status: Pending Approval â—      â”‚ â”‚
+â”‚ â”‚ Submitted: 1 hour ago           â”‚ â”‚
+â”‚ â”‚ [View Details]                  â”‚ â”‚
+â”‚ â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜ â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 ```
 
 **Status Badge Colors**:
@@ -514,36 +521,36 @@ invitation to join BEATZ.
 **Flow**:
 
 ```
-Guardian approves → Notification sent → Subject activates → Student can access
+Guardian approves â†’ Notification sent â†’ Subject activates â†’ Student can access
 ```
 
 **Notification**:
 
 ```
-🔔 Notification Bell (1)
+ðŸ”” Notification Bell (1)
 
-┌─────────────────────────────────────┐
-│ ✅ Your guardian approved Biology   │
-│    You can now access it!           │
-│    2 minutes ago                    │
-└─────────────────────────────────────┘
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚ âœ… Your guardian approved Biology   â”‚
+â”‚    You can now access it!           â”‚
+â”‚    2 minutes ago                    â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 ```
 
 **Dashboard Update**:
 
 ```
-┌─────────────────────────────────────┐
-│ Biology GCSE (AQA)                  │
-│ Status: Approved ●                  │
-│ Approved: 2 minutes ago             │
-│ [Start Learning →]                  │
-└─────────────────────────────────────┘
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚ Biology GCSE (AQA)                  â”‚
+â”‚ Status: Approved â—                  â”‚
+â”‚ Approved: 2 minutes ago             â”‚
+â”‚ [Start Learning â†’]                  â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 ```
 
 **Student Actions**:
 
-- Click notification → navigates to Dashboard
-- Click "Start Learning" → accesses Biology learning content
+- Click notification â†’ navigates to Dashboard
+- Click "Start Learning" â†’ accesses Biology learning content
 - Subject now appears in active subjects list
 
 ---
@@ -555,39 +562,39 @@ Guardian approves → Notification sent → Subject activates → Student can ac
 **Flow**:
 
 ```
-Guardian rejects → Notification sent → Subject shows rejected → Student can modify
+Guardian rejects â†’ Notification sent â†’ Subject shows rejected â†’ Student can modify
 ```
 
 **Notification**:
 
 ```
-🔔 Notification Bell (1)
+ðŸ”” Notification Bell (1)
 
-┌─────────────────────────────────────┐
-│ ❌ Your guardian rejected Chemistry │
-│    Reason: Too expensive            │
-│    "Let's discuss during exam term" │
-│    5 minutes ago                    │
-└─────────────────────────────────────┘
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚ âŒ Your guardian rejected Chemistry â”‚
+â”‚    Reason: Too expensive            â”‚
+â”‚    "Let's discuss during exam term" â”‚
+â”‚    5 minutes ago                    â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 ```
 
 **Dashboard Update**:
 
 ```
-┌─────────────────────────────────────┐
-│ Chemistry GCSE (Edexcel)            │
-│ Status: Rejected ●                  │
-│ Reason: Too expensive               │
-│ Note: "Let's discuss during exam    │
-│        term"                        │
-│ [Request Changes] [Remove]          │
-└─────────────────────────────────────┘
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚ Chemistry GCSE (Edexcel)            â”‚
+â”‚ Status: Rejected â—                  â”‚
+â”‚ Reason: Too expensive               â”‚
+â”‚ Note: "Let's discuss during exam    â”‚
+â”‚        term"                        â”‚
+â”‚ [Request Changes] [Remove]          â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 ```
 
 **Student Actions**:
 
-- Click "Request Changes" → edit subject details → resubmit
-- Click "Remove" → removes subject from list
+- Click "Request Changes" â†’ edit subject details â†’ resubmit
+- Click "Remove" â†’ removes subject from list
 - Can discuss with guardian offline and resubmit later
 
 ---
@@ -599,7 +606,7 @@ Guardian rejects → Notification sent → Subject shows rejected → Student ca
 **Flow**:
 
 ```
-Edit approved subject → Changes detected → Approval reset → Guardian notified
+Edit approved subject â†’ Changes detected â†’ Approval reset â†’ Guardian notified
 ```
 
 **Steps**:
@@ -607,7 +614,7 @@ Edit approved subject → Changes detected → Approval reset → Guardian notif
 1. Student clicks "Edit" on approved subject (e.g., Biology)
 2. Edit form opens with current configuration pre-filled
 3. Student changes exam board from "AQA" to "Edexcel"
-4. Warning displayed: "⚠️ Modifying this subject will require guardian re-approval"
+4. Warning displayed: "âš ï¸ Modifying this subject will require guardian re-approval"
 5. Student confirms and submits
 6. Subject status changes from "Approved" to "Pending Approval"
 7. Subject access disabled until re-approved
@@ -616,13 +623,13 @@ Edit approved subject → Changes detected → Approval reset → Guardian notif
 **Dashboard Update**:
 
 ```
-┌─────────────────────────────────────┐
-│ Biology GCSE (Edexcel) - Modified   │
-│ Status: Pending Approval ●          │
-│ Previous: AQA → New: Edexcel        │
-│ Awaiting guardian re-approval       │
-│ Modified: Just now                  │
-└─────────────────────────────────────┘
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚ Biology GCSE (Edexcel) - Modified   â”‚
+â”‚ Status: Pending Approval â—          â”‚
+â”‚ Previous: AQA â†’ New: Edexcel        â”‚
+â”‚ Awaiting guardian re-approval       â”‚
+â”‚ Modified: Just now                  â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 ```
 
 **Technical**:
@@ -640,7 +647,7 @@ Edit approved subject → Changes detected → Approval reset → Guardian notif
 **Flow**:
 
 ```
-Dashboard → Add Subject → Configure → Submit → Awaits approval
+Dashboard â†’ Add Subject â†’ Configure â†’ Submit â†’ Awaits approval
 ```
 
 **Steps**:
@@ -667,32 +674,32 @@ Dashboard → Add Subject → Configure → Submit → Awaits approval
 **Dashboard View**:
 
 ```
-┌─────────────────────────────────────┐
-│ My Active Subjects (3)              │
-│                                     │
-│ ┌─────────────────────────────────┐ │
-│ │ Biology GCSE (AQA)              │ │
-│ │ Status: Active ●                │ │
-│ │ Progress: 45% complete          │ │
-│ │ Last studied: 2 days ago        │ │
-│ │ [Continue Learning →]           │ │
-│ └─────────────────────────────────┘ │
-│                                     │
-│ ┌─────────────────────────────────┐ │
-│ │ Chemistry GCSE (Edexcel)        │ │
-│ │ Status: Active ●                │ │
-│ │ Progress: 12% complete          │ │
-│ │ Last studied: 1 week ago        │ │
-│ │ [Continue Learning →]           │ │
-│ └─────────────────────────────────┘ │
-│                                     │
-│ ┌─────────────────────────────────┐ │
-│ │ Mathematics A-Level (OCR)       │ │
-│ │ Status: Active ●                │ │
-│ │ Progress: Not started           │ │
-│ │ [Start Learning →]              │ │
-│ └─────────────────────────────────┘ │
-└─────────────────────────────────────┘
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚ My Active Subjects (3)              â”‚
+â”‚                                     â”‚
+â”‚ â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â” â”‚
+â”‚ â”‚ Biology GCSE (AQA)              â”‚ â”‚
+â”‚ â”‚ Status: Active â—                â”‚ â”‚
+â”‚ â”‚ Progress: 45% complete          â”‚ â”‚
+â”‚ â”‚ Last studied: 2 days ago        â”‚ â”‚
+â”‚ â”‚ [Continue Learning â†’]           â”‚ â”‚
+â”‚ â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜ â”‚
+â”‚                                     â”‚
+â”‚ â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â” â”‚
+â”‚ â”‚ Chemistry GCSE (Edexcel)        â”‚ â”‚
+â”‚ â”‚ Status: Active â—                â”‚ â”‚
+â”‚ â”‚ Progress: 12% complete          â”‚ â”‚
+â”‚ â”‚ Last studied: 1 week ago        â”‚ â”‚
+â”‚ â”‚ [Continue Learning â†’]           â”‚ â”‚
+â”‚ â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜ â”‚
+â”‚                                     â”‚
+â”‚ â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â” â”‚
+â”‚ â”‚ Mathematics A-Level (OCR)       â”‚ â”‚
+â”‚ â”‚ Status: Active â—                â”‚ â”‚
+â”‚ â”‚ Progress: Not started           â”‚ â”‚
+â”‚ â”‚ [Start Learning â†’]              â”‚ â”‚
+â”‚ â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜ â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 ```
 
 **Student can now**:
@@ -744,13 +751,13 @@ Dashboard → Add Subject → Configure → Submit → Awaits approval
 **Flow**:
 
 ```
-Click Link → Clerk validates → Shows expired message → Contact guardian
+Click Link â†’ Clerk validates â†’ Shows expired message â†’ Contact guardian
 ```
 
 **UI**:
 
 ```
-❌ Invitation Expired
+âŒ Invitation Expired
 
 This invitation from [Guardian Name] has expired.
 
@@ -769,13 +776,13 @@ their BEATZ dashboard.
 **Flow**:
 
 ```
-Sign Up → Select "Student" role → Registration blocked → Error shown
+Sign Up â†’ Select "Student" role â†’ Registration blocked â†’ Error shown
 ```
 
 **UI**:
 
 ```
-❌ Students Must Be Invited
+âŒ Students Must Be Invited
 
 Students cannot create accounts directly. Please ask
 your parent, teacher, or tutor to:
@@ -796,16 +803,16 @@ Need help? Contact support@beatz.com
 **Dashboard**:
 
 ```
-┌─────────────────────────────────────┐
-│ My Subjects                         │
-│                                     │
-│ You haven't added any subjects yet. │
-│                                     │
-│ [Add Your First Subject]            │
-└─────────────────────────────────────┘
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚ My Subjects                         â”‚
+â”‚                                     â”‚
+â”‚ You haven't added any subjects yet. â”‚
+â”‚                                     â”‚
+â”‚ [Add Your First Subject]            â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 ```
 
-**Action**: Click button → opens subject selection wizard
+**Action**: Click button â†’ opens subject selection wizard
 
 ---
 
@@ -816,17 +823,17 @@ Need help? Contact support@beatz.com
 **Dashboard**:
 
 ```
-┌─────────────────────────────────────┐
-│ My Subjects                         │
-│                                     │
-│ ❌ All subjects were rejected       │
-│                                     │
-│ Your guardian provided feedback.    │
-│ Review the reasons below and        │
-│ discuss with your guardian.         │
-│                                     │
-│ [View Rejected Subjects]            │
-└─────────────────────────────────────┘
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚ My Subjects                         â”‚
+â”‚                                     â”‚
+â”‚ âŒ All subjects were rejected       â”‚
+â”‚                                     â”‚
+â”‚ Your guardian provided feedback.    â”‚
+â”‚ Review the reasons below and        â”‚
+â”‚ discuss with your guardian.         â”‚
+â”‚                                     â”‚
+â”‚ [View Rejected Subjects]            â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 ```
 
 **Student Actions**:
@@ -853,44 +860,44 @@ Need help? Contact support@beatz.com
 ## UI Navigation Map
 
 ```
-┌────────────────────────────────────────────────────────────────┐
-│                        GUARDIAN FLOW                           │
-└────────────────────────────────────────────────────────────────┘
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚                        GUARDIAN FLOW                           â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 
   Sign Up (Clerk)
-       ↓
+       â†“
   Registration Form (/register)
-       ↓
+       â†“
   Dashboard (/dashboard)
-       ├─→ Add Student Form → Save → Student List
-       ├─→ Invite Student → Email Dialog → Invitation Sent
-       ├─→ Subject Approval Panel
-       │       ├─→ Approve Subject → Confirmation → Activated
-       │       └─→ Reject Subject → Reason Dialog → Rejected
-       ├─→ Notification Bell → Dropdown → Navigate to relevant view
-       └─→ Student Details → View/Edit basic info
+       â”œâ”€â†’ Add Student Form â†’ Save â†’ Student List
+       â”œâ”€â†’ Invite Student â†’ Email Dialog â†’ Invitation Sent
+       â”œâ”€â†’ Subject Approval Panel
+       â”‚       â”œâ”€â†’ Approve Subject â†’ Confirmation â†’ Activated
+       â”‚       â””â”€â†’ Reject Subject â†’ Reason Dialog â†’ Rejected
+       â”œâ”€â†’ Notification Bell â†’ Dropdown â†’ Navigate to relevant view
+       â””â”€â†’ Student Details â†’ View/Edit basic info
 
-┌────────────────────────────────────────────────────────────────┐
-│                         STUDENT FLOW                           │
-└────────────────────────────────────────────────────────────────┘
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚                         STUDENT FLOW                           â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 
   Email Invitation
-       ↓
-  Click Link → Clerk Sign Up
-       ↓
+       â†“
+  Click Link â†’ Clerk Sign Up
+       â†“
   Profile Setup Wizard (/student-profile-setup)
-       ├─→ Step 1: Welcome (read guardian-set info)
-       ├─→ Step 2: Select Subjects
-       ├─→ Step 3: Configure Each Subject
-       └─→ Step 4: Review & Submit
-       ↓
+       â”œâ”€â†’ Step 1: Welcome (read guardian-set info)
+       â”œâ”€â†’ Step 2: Select Subjects
+       â”œâ”€â†’ Step 3: Configure Each Subject
+       â””â”€â†’ Step 4: Review & Submit
+       â†“
   Dashboard (/dashboard)
-       ├─→ View Subject Status (Pending/Approved/Rejected)
-       ├─→ Start Learning (approved subjects only)
-       ├─→ Edit Subject → Triggers Re-approval
-       ├─→ Add New Subject → Awaits Approval
-       ├─→ Notification Bell → View approval status
-       └─→ Request Changes (rejected subjects)
+       â”œâ”€â†’ View Subject Status (Pending/Approved/Rejected)
+       â”œâ”€â†’ Start Learning (approved subjects only)
+       â”œâ”€â†’ Edit Subject â†’ Triggers Re-approval
+       â”œâ”€â†’ Add New Subject â†’ Awaits Approval
+       â”œâ”€â†’ Notification Bell â†’ View approval status
+       â””â”€â†’ Request Changes (rejected subjects)
 ```
 
 ---
@@ -1010,3 +1017,5 @@ Need help? Contact support@beatz.com
 ---
 
 _Last Updated: December 2, 2025_
+
+

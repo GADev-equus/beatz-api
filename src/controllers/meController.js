@@ -1,5 +1,8 @@
 import { getUserAuth } from '../middleware/auth.js';
-import { getAccountByClerkId, getOrCreateAccountFromAuth } from '../services/accountService.js';
+import {
+  getAccountByClerkId,
+  getOrCreateAccountFromAuth,
+} from '../services/accountService.js';
 
 export const getMe = async (req, res, next) => {
   try {
@@ -10,15 +13,19 @@ export const getMe = async (req, res, next) => {
       return res.status(401).json({ error: 'Not authenticated' });
     }
 
-    // Try to find the account; if missing, upsert a minimal record to let the user in.
+    // Try to find the account
     const { user, parent } = await getAccountByClerkId(clerkUserId);
-    const account = user ? { user, parent } : await getOrCreateAccountFromAuth(auth);
 
-    if (!account.user) {
-      return res.status(404).json({ error: 'User record not found' });
+    // Don't auto-create users here - let them complete registration first
+    if (!user) {
+      return res
+        .status(404)
+        .json({
+          error: 'User record not found. Please complete registration.',
+        });
     }
 
-    res.json(account);
+    res.json({ user, parent });
   } catch (err) {
     next(err);
   }

@@ -249,12 +249,16 @@ export const getStudentProfileForUser = async (clerkUserId) => {
   if (!user) {
     throw buildError('User record not found', 404);
   }
-  if (user.role !== 'student') {
-    throw buildError('Forbidden: student role required', 403);
-  }
 
   const student = await Student.findOne({ userId: user._id });
   if (!student) {
+    // If no student profile exists, user must be a student role
+    if (user.role !== 'student') {
+      throw buildError(
+        'Forbidden: student role or student profile required',
+        403,
+      );
+    }
     throw buildError('Student profile not found for user', 404);
   }
 
@@ -374,24 +378,113 @@ export const rejectStudentEnrolment = async (
   return { user, parent, student, enrolment };
 };
 
-export const updateMyStudentProfile = async (clerkUserId, payload) => {
-  const user = await User.findOne({ clerkUserId });
+export const updateMyStudentProfile = async (
+  clerkUserId,
+  payload,
+  invitationMetadata = {},
+  userEmail = '',
+) => {
+  // Try to find existing user
+  let user = await User.findOne({ clerkUserId });
+  let student = null;
+
+  logger.info(
+    `updateMyStudentProfile called - clerkUserId: ${clerkUserId}, userEmail: ${userEmail}, hasInvitationMetadata: ${!!invitationMetadata.studentId}`,
+  );
+
+  // If user doesn't exist, check if this is an invited student and auto-create the user
   if (!user) {
-    throw buildError('User record not found', 404);
-  }
-  if (user.role !== 'student') {
-    throw buildError('Forbidden: student role required', 403);
+    logger.info(
+      'User not found, attempting auto-registration for invited student',
+    );
+
+    // Try to find student by invitation metadata first
+    const studentId = invitationMetadata.studentId;
+
+    if (studentId) {
+      logger.info(`Looking up student by invitation metadata: ${studentId}`);
+      student = await Student.findById(studentId);
+      if (student) {
+        logger.info(
+          `Found student via metadata: ${student._id}, userId: ${student.userId}`,
+        );
+      }
+    }
+
+    // If no invitation metadata, try to find by invited email
+    if (!student && userEmail) {
+      const normalizedEmail = normalizeString(userEmail).toLowerCase();
+      logger.info(`Looking up student by email: ${normalizedEmail}`);
+      student = await Student.findOne({
+        invitedEmail: normalizedEmail,
+        userId: null, // Not yet linked to a user
+        invitationStatus: 'pending',
+      });
+      if (student) {
+        logger.info(`Found student via email: ${student._id}`);
+      } else {
+        logger.warn(`No pending student found for email: ${normalizedEmail}`);
+      }
+    }
+
+    if (student && !student.userId) {
+      // Auto-create user record for invited student
+      logger.info('Creating user record for invited student');
+      user = await User.create({
+        clerkUserId,
+        email: student.invitedEmail || userEmail,
+        role: 'student',
+        displayName: student.displayName || '',
+        tenantId: student.tenantId || invitationMetadata.tenantId,
+      });
+
+      // Link the student to the user
+      student.userId = user._id;
+      student.invitationStatus = 'accepted';
+      await student.save();
+
+      logger.info(
+        `Auto-created user record for invited student: ${clerkUserId}, linked to student: ${student._id}`,
+      );
+    }
+
+    // If still no user, throw error
+    if (!user) {
+      logger.error('Failed to create user - no invitation found');
+      throw buildError(
+        'User record not found. Please ensure you were invited by a guardian.',
+        404,
+      );
+    }
+  } else {
+    logger.info(`Found existing user: ${user._id}, role: ${user.role}`);
   }
 
-  const student = await Student.findOne({ userId: user._id });
+  // If we don't have student yet, look it up
   if (!student) {
+    student = await Student.findOne({ userId: user._id });
+    if (student) {
+      logger.info(`Found student profile: ${student._id}`);
+    } else {
+      logger.warn(`No student profile found for user: ${user._id}`);
+    }
+  }
+
+  if (!student) {
+    // If no student profile exists, user must be a student role
+    logger.error(`No student profile - user role is: ${user.role}`);
+    if (user.role !== 'student') {
+      throw buildError(
+        'Forbidden: student role or student profile required',
+        403,
+      );
+    }
     throw buildError('Student profile not found for user', 404);
   }
 
   // Track which enrolments were modified to trigger re-approval
   const modifiedIndices = [];
   const guardianNeedsNotification = [];
-
   if (payload.enrolments !== undefined) {
     const newEnrolments = normalizeEnrolments(payload.enrolments);
 
@@ -444,8 +537,16 @@ export const updateMyStudentProfile = async (clerkUserId, payload) => {
   }
 
   // Update other fields if provided
+  if (payload.displayName !== undefined) {
+    const normalizedDisplayName = normalizeString(payload.displayName);
+    if (!normalizedDisplayName) {
+      throw buildError('Display name cannot be empty', 400);
+    }
+    student.displayName = normalizedDisplayName;
+  }
+
   if (payload.yearGroup !== undefined) {
-    student.yearGroup = normalize(payload.yearGroup) || null;
+    student.yearGroup = normalizeString(payload.yearGroup) || null;
   }
 
   await student.save();

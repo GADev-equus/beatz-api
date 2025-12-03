@@ -41,6 +41,7 @@ export const rejectEnrolmentSchema = z.object({
 
 export const updateMyStudentProfileSchema = z
   .object({
+    displayName: z.string().trim().min(1).optional(),
     yearGroup: z.string().trim().optional(),
     enrolments: z.array(enrolmentSchema).optional(),
   })

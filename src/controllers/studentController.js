@@ -1,4 +1,5 @@
 import { ZodError } from 'zod';
+import { clerkClient } from '@clerk/express';
 import { getUserAuth } from '../middleware/auth.js';
 import {
   listStudentsForGuardian,
@@ -177,9 +178,29 @@ export const rejectEnrolment = async (req, res, next) => {
 
 export const updateMyProfile = async (req, res, next) => {
   try {
+    const auth = getUserAuth(req);
     const clerkUserId = ensureAuth(req);
     const payload = updateMyStudentProfileSchema.parse(req.body || {});
-    const { student } = await updateMyStudentProfile(clerkUserId, payload);
+
+    // Get invitation metadata
+    const invitationMetadata = auth?.invitation?.publicMetadata || {};
+
+    // Fetch user email from Clerk API
+    let userEmail = '';
+    try {
+      const clerkUser = await clerkClient.users.getUser(clerkUserId);
+      userEmail = clerkUser.emailAddresses?.[0]?.emailAddress || '';
+      console.log('Fetched email from Clerk:', userEmail);
+    } catch (clerkError) {
+      console.error('Failed to fetch user from Clerk:', clerkError);
+    }
+
+    const { student } = await updateMyStudentProfile(
+      clerkUserId,
+      payload,
+      invitationMetadata,
+      userEmail,
+    );
     res.json({ student });
   } catch (err) {
     handleError(err, res, next);
