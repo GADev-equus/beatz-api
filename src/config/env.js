@@ -43,9 +43,13 @@ const config = Object.freeze({
   port: toNumber('PORT', process.env.PORT, 8000),
   apiPrefix: `/${stripSlashes(process.env.API_PREFIX || '/api')}`,
   apiVersion: stripSlashes(process.env.API_VERSION || 'v1'),
-  apiBasePath: normalizeApiBasePath(process.env.API_PREFIX, process.env.API_VERSION),
+  apiBasePath: normalizeApiBasePath(
+    process.env.API_PREFIX,
+    process.env.API_VERSION,
+  ),
   corsOrigins: parseOrigins(process.env.CORS_ORIGINS),
-  logFormat: process.env.MORGAN_FORMAT || (env === 'production' ? 'combined' : 'dev'),
+  logFormat:
+    process.env.MORGAN_FORMAT || (env === 'production' ? 'combined' : 'dev'),
   frontendUrl: process.env.FRONTEND_URL || 'http://localhost:5173',
   clerk: {
     secretKey: process.env.CLERK_SECRET_KEY || '',

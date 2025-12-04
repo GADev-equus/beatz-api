@@ -495,10 +495,13 @@ export const updateMyStudentProfile = async (
     const findExistingIndex = (enrol) =>
       existingEnrolments.findIndex(
         (e) =>
-          (e.subject || '').toLowerCase() === (enrol.subject || '').toLowerCase() &&
-          (e.country || '').toLowerCase() === (enrol.country || '').toLowerCase() &&
+          (e.subject || '').toLowerCase() ===
+            (enrol.subject || '').toLowerCase() &&
+          (e.country || '').toLowerCase() ===
+            (enrol.country || '').toLowerCase() &&
           (e.level || '').toLowerCase() === (enrol.level || '').toLowerCase() &&
-          (e.examBody || '').toLowerCase() === (enrol.examBody || '').toLowerCase(),
+          (e.examBody || '').toLowerCase() ===
+            (enrol.examBody || '').toLowerCase(),
       );
 
     const mergedEnrolments = [];
@@ -523,7 +526,8 @@ export const updateMyStudentProfile = async (
 
     newEnrolments.forEach((newEnrol) => {
       const existingIndex = findExistingIndex(newEnrol);
-      const existingEnrol = existingIndex >= 0 ? existingEnrolments[existingIndex] : null;
+      const existingEnrol =
+        existingIndex >= 0 ? existingEnrolments[existingIndex] : null;
 
       if (!existingEnrol) {
         // New enrolment - set to pending approval and append
