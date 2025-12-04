@@ -134,6 +134,7 @@ const inviteViaClerk = async ({ email, metadata }) => {
     body: JSON.stringify({
       email_address: email,
       public_metadata: metadata,
+      redirect_url: `${config.frontendUrl}/student-setup`,
     }),
   });
 

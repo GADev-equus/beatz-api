@@ -46,6 +46,7 @@ const config = Object.freeze({
   apiBasePath: normalizeApiBasePath(process.env.API_PREFIX, process.env.API_VERSION),
   corsOrigins: parseOrigins(process.env.CORS_ORIGINS),
   logFormat: process.env.MORGAN_FORMAT || (env === 'production' ? 'combined' : 'dev'),
+  frontendUrl: process.env.FRONTEND_URL || 'http://localhost:5173',
   clerk: {
     secretKey: process.env.CLERK_SECRET_KEY || '',
     publishableKey: process.env.CLERK_PUBLISHABLE_KEY || '',
