@@ -502,6 +502,24 @@ export const updateMyStudentProfile = async (
 
     const mergedEnrolments = [];
 
+    const existingKeys = existingEnrolments.map((e) =>
+      [
+        (e.subject || '').toLowerCase(),
+        (e.country || '').toLowerCase(),
+        (e.level || '').toLowerCase(),
+        (e.examBody || '').toLowerCase(),
+      ].join('|'),
+    );
+
+    const newKeys = newEnrolments.map((e) =>
+      [
+        (e.subject || '').toLowerCase(),
+        (e.country || '').toLowerCase(),
+        (e.level || '').toLowerCase(),
+        (e.examBody || '').toLowerCase(),
+      ].join('|'),
+    );
+
     newEnrolments.forEach((newEnrol) => {
       const existingIndex = findExistingIndex(newEnrol);
       const existingEnrol = existingIndex >= 0 ? existingEnrolments[existingIndex] : null;
@@ -551,6 +569,22 @@ export const updateMyStudentProfile = async (
       mergedEnrolments.push(newEnrol);
     });
 
+    // Detect removals (in existing but not in new payload)
+    existingEnrolments.forEach((existing) => {
+      const key = [
+        (existing.subject || '').toLowerCase(),
+        (existing.country || '').toLowerCase(),
+        (existing.level || '').toLowerCase(),
+        (existing.examBody || '').toLowerCase(),
+      ].join('|');
+      if (!newKeys.includes(key)) {
+        guardianNeedsNotification.push({
+          type: 'subject_removed',
+          subject: existing.subject,
+        });
+      }
+    });
+
     // Replacing enrolments with merged list means rows removed in the payload are deleted.
     student.enrolments = mergedEnrolments;
   }
@@ -578,14 +612,23 @@ export const updateMyStudentProfile = async (
       }).populate('userId');
       if (parent && parent.userId) {
         const { createNotification } = await import('./notificationService.js');
-        await createNotification({
-          userId: parent.userId._id,
-          type: 'subject_modified',
-          message: `${student.displayName}: ${guardianNeedsNotification.join(
-            ', ',
-          )}`,
-          relatedStudentId: student._id,
-        });
+        for (const item of guardianNeedsNotification) {
+          if (typeof item === 'string') {
+            await createNotification({
+              userId: parent.userId._id,
+              type: 'subject_modified',
+              message: `${student.displayName}: ${item}`,
+              relatedStudentId: student._id,
+            });
+          } else if (item?.type === 'subject_removed') {
+            await createNotification({
+              userId: parent.userId._id,
+              type: 'subject_removed',
+              message: `${student.displayName}: Removed subject ${item.subject}`,
+              relatedStudentId: student._id,
+            });
+          }
+        }
       }
     } catch (err) {
       logger.error('Failed to create guardian notification:', err);
