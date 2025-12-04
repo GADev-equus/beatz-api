@@ -11,6 +11,7 @@ const BookSchema = new Schema(
 const EnrolmentSchema = new Schema(
   {
     subject: { type: String, required: true },
+    country: { type: String, default: null },
     level: { type: String, default: null },
     examBody: { type: String, default: null },
     books: { type: [BookSchema], default: [] },

@@ -487,42 +487,58 @@ export const updateMyStudentProfile = async (
   const guardianNeedsNotification = [];
   if (payload.enrolments !== undefined) {
     const newEnrolments = normalizeEnrolments(payload.enrolments);
+    const existingEnrolments = Array.isArray(student.enrolments)
+      ? [...student.enrolments]
+      : [];
 
-    // Compare with existing enrolments to detect modifications
-    newEnrolments.forEach((newEnrol, idx) => {
-      const existingEnrol = student.enrolments[idx];
+    const findExistingIndex = (enrol) =>
+      existingEnrolments.findIndex(
+        (e) =>
+          (e.subject || '').toLowerCase() === (enrol.subject || '').toLowerCase() &&
+          (e.country || '').toLowerCase() === (enrol.country || '').toLowerCase() &&
+          (e.level || '').toLowerCase() === (enrol.level || '').toLowerCase() &&
+          (e.examBody || '').toLowerCase() === (enrol.examBody || '').toLowerCase(),
+      );
+
+    const mergedEnrolments = [];
+
+    newEnrolments.forEach((newEnrol) => {
+      const existingIndex = findExistingIndex(newEnrol);
+      const existingEnrol = existingIndex >= 0 ? existingEnrolments[existingIndex] : null;
 
       if (!existingEnrol) {
-        // New enrolment - set to pending approval
+        // New enrolment - set to pending approval and append
         newEnrol.approvalStatus = 'pending_approval';
-        modifiedIndices.push(idx);
+        newEnrol.approvedAt = null;
+        newEnrol.rejectedAt = null;
+        newEnrol.rejectionReason = null;
+        newEnrol.billingStatus = 'inactive';
+        newEnrol.monthlyPrice = 0;
+        mergedEnrolments.push(newEnrol);
+        modifiedIndices.push(mergedEnrolments.length - 1);
         guardianNeedsNotification.push(`New subject: ${newEnrol.subject}`);
-      } else if (existingEnrol.approvalStatus === 'approved') {
-        // Check if approved enrolment was modified
-        const wasModified =
-          existingEnrol.subject !== newEnrol.subject ||
-          existingEnrol.level !== newEnrol.level ||
-          existingEnrol.examBody !== newEnrol.examBody;
+        return;
+      }
 
-        if (wasModified) {
-          // Reset approval status
-          newEnrol.approvalStatus = 'pending_approval';
-          newEnrol.approvedAt = null;
-          newEnrol.billingStatus = 'inactive';
-          newEnrol.monthlyPrice = 0;
-          modifiedIndices.push(idx);
-          guardianNeedsNotification.push(
-            `Modified subject: ${newEnrol.subject} (re-approval needed)`,
-          );
-        } else {
-          // Keep existing approval status
-          newEnrol.approvalStatus = existingEnrol.approvalStatus;
-          newEnrol.approvedAt = existingEnrol.approvedAt;
-          newEnrol.billingStatus = existingEnrol.billingStatus;
-          newEnrol.monthlyPrice = existingEnrol.monthlyPrice;
-        }
+      // Existing enrolment found
+      const wasModified =
+        existingEnrol.subject !== newEnrol.subject ||
+        (existingEnrol.country || '') !== (newEnrol.country || '') ||
+        existingEnrol.level !== newEnrol.level ||
+        existingEnrol.examBody !== newEnrol.examBody;
+
+      if (existingEnrol.approvalStatus === 'approved' && wasModified) {
+        newEnrol.approvalStatus = 'pending_approval';
+        newEnrol.approvedAt = null;
+        newEnrol.rejectedAt = null;
+        newEnrol.rejectionReason = null;
+        newEnrol.billingStatus = 'inactive';
+        newEnrol.monthlyPrice = 0;
+        modifiedIndices.push(mergedEnrolments.length);
+        guardianNeedsNotification.push(
+          `Modified subject: ${newEnrol.subject} (re-approval needed)`,
+        );
       } else {
-        // Keep existing status for non-approved enrolments
         newEnrol.approvalStatus =
           existingEnrol.approvalStatus || 'pending_approval';
         newEnrol.approvedAt = existingEnrol.approvedAt;
@@ -531,9 +547,12 @@ export const updateMyStudentProfile = async (
         newEnrol.billingStatus = existingEnrol.billingStatus;
         newEnrol.monthlyPrice = existingEnrol.monthlyPrice;
       }
+
+      mergedEnrolments.push(newEnrol);
     });
 
-    student.enrolments = newEnrolments;
+    // Replacing enrolments with merged list means rows removed in the payload are deleted.
+    student.enrolments = mergedEnrolments;
   }
 
   // Update other fields if provided

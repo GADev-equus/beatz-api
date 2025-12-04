@@ -23,11 +23,12 @@ export const normalizeEnrolments = (enrolments) => {
     .map((enrolment) => {
       const subject = normalizeString(enrolment.subject);
       if (!subject) return null;
+      const country = normalizeString(enrolment.country) || null;
       const level = normalizeString(enrolment.level) || null;
       const examBody = normalizeString(enrolment.examBody) || null;
       const books = normalizeBooks(enrolment.books);
       const examDates = normalizeExamDates(enrolment.examDates);
-      return { subject, level, examBody, books, examDates };
+      return { subject, country, level, examBody, books, examDates };
     })
     .filter(Boolean);
 };
