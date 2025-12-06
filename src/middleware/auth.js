@@ -1,30 +1,17 @@
 import { getAuth, clerkMiddleware } from '@clerk/express';
 import config from '../config/env.js';
-import logger from '../utils/logger.js';
 
 const authConfigured = Boolean(config.clerk.secretKey);
 
-if (!authConfigured) {
-  logger.warn('CLERK_SECRET_KEY not set. Auth middleware will reject protected routes.');
-}
-
-// Authorized parties - domains that can use tokens with this API
-const authorizedParties = config.isProduction
-  ? ['https://beatz.equussystems.co']
-  : [
-      'https://beatz.equussystems.co',
-      'http://localhost:5173',
-      'http://localhost:8000',
-    ];
-
 // When configured, clerkMiddleware attaches `req.auth` (see Clerk docs).
-export const withClerkMiddleware = authConfigured 
-  ? clerkMiddleware({ authorizedParties }) 
+export const withClerkMiddleware = authConfigured
+  ? clerkMiddleware()
   : (_req, _res, next) => next();
 
 export const requireAuth = authConfigured
   ? (req, res, next) => {
-      const auth = typeof req.auth === 'function' ? req.auth() : req.auth ?? getAuth(req);
+      const auth = req.auth ?? getAuth(req);
+
       if (!auth?.userId) {
         return res.status(401).json({ error: 'Unauthorized' });
       }
@@ -34,10 +21,5 @@ export const requireAuth = authConfigured
 
 export const getUserAuth = (req) => {
   if (!authConfigured) return null;
-  if (typeof req.auth === 'function') {
-    return req.auth();
-  }
   return req.auth ?? getAuth(req);
 };
-
-export const isAuthConfigured = authConfigured;
