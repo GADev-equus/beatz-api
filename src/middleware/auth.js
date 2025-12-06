@@ -8,8 +8,19 @@ if (!authConfigured) {
   logger.warn('CLERK_SECRET_KEY not set. Auth middleware will reject protected routes.');
 }
 
+// Authorized parties - domains that can use tokens with this API
+const authorizedParties = config.isProduction
+  ? ['https://beatz.equussystems.co']
+  : [
+      'https://beatz.equussystems.co',
+      'http://localhost:5173',
+      'http://localhost:8000',
+    ];
+
 // When configured, clerkMiddleware attaches `req.auth` (see Clerk docs).
-export const withClerkMiddleware = authConfigured ? clerkMiddleware() : (_req, _res, next) => next();
+export const withClerkMiddleware = authConfigured 
+  ? clerkMiddleware({ authorizedParties }) 
+  : (_req, _res, next) => next();
 
 export const requireAuth = authConfigured
   ? (req, res, next) => {
